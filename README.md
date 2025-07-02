@@ -4,12 +4,12 @@ A real-time Solana wallet transaction tracker that monitors wallet addresses and
 
 ## Features
 
-✅ **Real-time monitoring** - Instant notifications via Helius webhooks  
-✅ **Multiple wallets** - Track unlimited wallet addresses  
-✅ **Rich notifications** - Detailed Discord embeds with transaction info  
-✅ **Transaction filtering** - Monitors transfers, swaps, NFT trades, staking, and more  
-✅ **Error resilience** - Robust error handling and retry logic  
-✅ **Easy management** - Simple CLI commands to add/remove wallets  
+✅ **Real-time monitoring** - Instant notifications via Helius webhooks
+✅ **Multiple wallets** - Track unlimited wallet addresses
+✅ **Rich notifications** - Detailed Discord embeds with transaction info
+✅ **Transaction filtering** - Monitors transfers, swaps, NFT trades, staking, and more
+✅ **Error resilience** - Robust error handling and retry logic
+✅ **Easy management** - Simple CLI commands to add/remove wallets
 
 ## Prerequisites
 
