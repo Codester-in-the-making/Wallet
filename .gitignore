@@ -21,7 +21,8 @@ logs/
 
 # Data files
 data/
-*.json
+data/*.json
+wallets.json
 
 # IDE
 .vscode/
