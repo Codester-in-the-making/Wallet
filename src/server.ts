@@ -1,4 +1,5 @@
 import express from 'express';
+import path from 'path';
 import { config } from './config';
 import { logger } from './logger';
 import { WalletManager } from './walletManager';
@@ -34,9 +35,12 @@ export class WalletTrackerServer {
   private setupMiddleware(): void {
     // Parse JSON bodies
     this.app.use(express.json({ limit: '10mb' }));
-    
+
     // Parse URL-encoded bodies
     this.app.use(express.urlencoded({ extended: true }));
+
+    // Serve static files from public directory
+    this.app.use(express.static(path.join(__dirname, '../public')));
 
     // Request logging
     this.app.use((req, res, next) => {
@@ -55,8 +59,13 @@ export class WalletTrackerServer {
    * Setup Express routes
    */
   private setupRoutes(): void {
-    // Root endpoint
+    // Root endpoint - serve web interface
     this.app.get('/', (req, res) => {
+      res.sendFile(path.join(__dirname, '../public/index.html'));
+    });
+
+    // API info endpoint
+    this.app.get('/api', (req, res) => {
       res.json({
         name: 'Solana Wallet Tracker',
         version: '1.0.0',
