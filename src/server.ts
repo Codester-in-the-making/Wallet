@@ -55,6 +55,23 @@ export class WalletTrackerServer {
    * Setup Express routes
    */
   private setupRoutes(): void {
+    // Root endpoint
+    this.app.get('/', (req, res) => {
+      res.json({
+        name: 'Solana Wallet Tracker',
+        version: '1.0.0',
+        status: 'running',
+        endpoints: {
+          health: '/health',
+          status: '/status',
+          webhook: config.server.webhookPath,
+          wallets: '/wallets',
+          testDiscord: '/test-discord'
+        },
+        timestamp: new Date().toISOString(),
+      });
+    });
+
     // Health check endpoint
     this.app.get('/health', (req, res) => {
       res.json({
