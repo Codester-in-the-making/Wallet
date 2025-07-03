@@ -18,7 +18,7 @@ export class WalletTrackerServer {
   constructor() {
     this.app = express();
     this.walletManager = new WalletManager();
-    this.discordNotifier = new DiscordNotifier();
+    this.discordNotifier = new DiscordNotifier(this.walletManager);
     this.heliusWebhookManager = new HeliusWebhookManager();
     this.transactionProcessor = new TransactionProcessor(
       this.discordNotifier,

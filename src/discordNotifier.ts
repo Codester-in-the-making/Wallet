@@ -2,6 +2,7 @@ import axios from 'axios';
 import { config } from './config';
 import { logger } from './logger';
 import { TransactionData, DiscordEmbed, DiscordMessage, DiscordField } from './types';
+import { WalletManager } from './walletManager';
 
 interface TokenMetadata {
   symbol: string;
@@ -29,9 +30,11 @@ export class DiscordNotifier {
   private maxRetries: number = 3;
   private retryDelay: number = 1000; // 1 second
   private tokenCache: Map<string, TokenMetadata> = new Map();
+  private walletManager: WalletManager;
 
-  constructor() {
+  constructor(walletManager: WalletManager) {
     this.webhookUrl = config.discord.webhookUrl;
+    this.walletManager = walletManager;
   }
 
   /**
@@ -194,14 +197,18 @@ export class DiscordNotifier {
    */
   async sendTransactionNotification(transaction: TransactionData, walletAddress: string): Promise<void> {
     try {
+      // Get wallet information including custom name
+      const wallet = await this.walletManager.getWallet(walletAddress);
+      const walletName = wallet?.label || 'Unknown Wallet';
+
       const enhancedTransfers = await this.analyzeTransaction(transaction, walletAddress);
-      const embed = await this.createEnhancedTransactionEmbed(transaction, walletAddress, enhancedTransfers);
+      const embed = await this.createEnhancedTransactionEmbed(transaction, walletAddress, walletName, enhancedTransfers);
       const message: DiscordMessage = {
         embeds: [embed]
       };
 
       await this.sendWithRetry(message);
-      logger.info(`Discord notification sent for transaction: ${transaction.signature}`);
+      logger.info(`Discord notification sent for transaction: ${transaction.signature} (wallet: ${walletName})`);
     } catch (error) {
       logger.error('Failed to send Discord notification:', error);
       throw error;
@@ -214,6 +221,7 @@ export class DiscordNotifier {
   private async createEnhancedTransactionEmbed(
     transaction: TransactionData,
     walletAddress: string,
+    walletName: string,
     enhancedTransfers: EnhancedTransfer[]
   ): Promise<DiscordEmbed> {
     const fields: DiscordField[] = [];
@@ -247,7 +255,7 @@ export class DiscordNotifier {
     // Basic info
     fields.push({
       name: '🏦 Wallet',
-      value: `\`${walletAddress}\``,
+      value: `**${walletName}**\n\`${this.truncateAddress(walletAddress)}\``,
       inline: true
     });
 
@@ -335,7 +343,7 @@ export class DiscordNotifier {
 
     return {
       title,
-      description: `Transaction processed for wallet ${this.truncateAddress(walletAddress)}`,
+      description: `Transaction processed for **${walletName}** (${this.truncateAddress(walletAddress)})`,
       color,
       fields,
       timestamp: new Date(transaction.timestamp * 1000).toISOString(),
