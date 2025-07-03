@@ -87,9 +87,14 @@ export class WalletManager {
       logger.warn('Could not save to file:', error);
     }
 
-    // Always save to environment variable as backup (for manual restoration)
-    logger.info(`Backup: Set PERSISTENT_WALLETS environment variable with ${wallets.length} wallets`);
-    logger.info(`PERSISTENT_WALLETS=${JSON.stringify(storage)}`);
+    // Automatically set environment variable as backup
+    try {
+      process.env.PERSISTENT_WALLETS = JSON.stringify(storage);
+      logger.info(`✅ Automatically set PERSISTENT_WALLETS environment variable with ${wallets.length} wallets`);
+    } catch (error) {
+      logger.warn('Could not set environment variable automatically:', error);
+      logger.info(`Manual backup: PERSISTENT_WALLETS=${JSON.stringify(storage)}`);
+    }
   }
 
   /**
