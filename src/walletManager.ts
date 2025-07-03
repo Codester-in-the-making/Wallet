@@ -37,21 +37,37 @@ export class WalletManager {
   }
 
   /**
-   * Load wallets from storage
+   * Load wallets from storage (file or environment variable fallback)
    */
   async loadWallets(): Promise<TrackedWallet[]> {
     try {
+      // Try to load from file first
       const data = await fs.readFile(this.walletsFilePath, 'utf-8');
       const storage: WalletStorage = JSON.parse(data);
+      logger.info(`Loaded ${storage.wallets?.length || 0} wallets from file`);
       return storage.wallets || [];
     } catch (error) {
-      logger.error('Error loading wallets:', error);
+      logger.warn('Could not load from file, trying environment variable fallback');
+
+      // Fallback to environment variable
+      const envWallets = process.env.PERSISTENT_WALLETS;
+      if (envWallets) {
+        try {
+          const storage: WalletStorage = JSON.parse(envWallets);
+          logger.info(`Loaded ${storage.wallets?.length || 0} wallets from environment variable`);
+          return storage.wallets || [];
+        } catch (envError) {
+          logger.error('Error parsing wallets from environment variable:', envError);
+        }
+      }
+
+      logger.info('No wallets found in file or environment variable');
       return [];
     }
   }
 
   /**
-   * Save wallets to storage
+   * Save wallets to storage (file and environment variable backup)
    */
   private async saveWallets(wallets: TrackedWallet[]): Promise<void> {
     const storage: WalletStorage = {
@@ -59,17 +75,21 @@ export class WalletManager {
       lastUpdated: new Date().toISOString(),
     };
 
+    const storageJson = JSON.stringify(storage, null, 2);
+
     try {
-      // Ensure directory exists
+      // Try to save to file
       const dir = path.dirname(this.walletsFilePath);
       await fs.mkdir(dir, { recursive: true });
-      
-      await fs.writeFile(this.walletsFilePath, JSON.stringify(storage, null, 2));
-      logger.info(`Saved ${wallets.length} wallets to storage`);
+      await fs.writeFile(this.walletsFilePath, storageJson);
+      logger.info(`Saved ${wallets.length} wallets to file`);
     } catch (error) {
-      logger.error('Error saving wallets:', error);
-      throw error;
+      logger.warn('Could not save to file:', error);
     }
+
+    // Always save to environment variable as backup (for manual restoration)
+    logger.info(`Backup: Set PERSISTENT_WALLETS environment variable with ${wallets.length} wallets`);
+    logger.info(`PERSISTENT_WALLETS=${JSON.stringify(storage)}`);
   }
 
   /**
