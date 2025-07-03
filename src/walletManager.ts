@@ -16,10 +16,22 @@ export class WalletManager {
    */
   async initialize(): Promise<void> {
     try {
+      // Ensure the directory exists
+      const dir = path.dirname(this.walletsFilePath);
+      await fs.mkdir(dir, { recursive: true });
+
+      // Check if file exists
       await fs.access(this.walletsFilePath);
-      logger.info('Wallets file exists, loading existing data');
+      logger.info(`Wallets file exists at: ${this.walletsFilePath}`);
+
+      // Load and log existing wallets
+      const wallets = await this.loadWallets();
+      logger.info(`Loaded ${wallets.length} wallets from storage`);
+      wallets.forEach(wallet => {
+        logger.info(`  - ${wallet.label}: ${wallet.address} (active: ${wallet.isActive})`);
+      });
     } catch (error) {
-      logger.info('Creating new wallets file');
+      logger.info(`Creating new wallets file at: ${this.walletsFilePath}`);
       await this.saveWallets([]);
     }
   }

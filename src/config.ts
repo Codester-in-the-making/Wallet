@@ -42,7 +42,7 @@ export const config: Config = {
     webhookPath: process.env.WEBHOOK_PATH || '/webhook',
   },
   app: {
-    walletsFile: process.env.WALLETS_FILE || './data/wallets.json',
+    walletsFile: process.env.WALLETS_FILE || '/tmp/wallets.json',
     logLevel: process.env.LOG_LEVEL || 'info',
   },
 };
